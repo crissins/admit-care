@@ -1,21 +1,21 @@
 {
     "app": {
-        "title": "Talk to your data",
-        "footer": "Built with Azure AI Search + Azure OpenAI",
-        "stopRecording": "Stop recording",
-        "startRecording": "Start recording",
-        "stopConversation": "Stop conversation"
+        "title": "Admision inclusiva",
+        "footer": "Azure AI Search + Azure OpenAI",
+        "stopRecording": "Detener grabacion",
+        "startRecording": "Comenzar grabacion",
+        "stopConversation": "Detener conversacion"
     },
     "status": {
-        "notRecordingMessage": "Ask anything about Contoso employee benefits",
-        "conversationInProgress": "Conversation in progress"
+        "notRecordingMessage": "Estoy aqui para tomar tus datos antes de ser atendido por nuestro personal medico.",
+        "conversationInProgress": "Conversacion en progreso"
     },
     "history": {
-        "answerHistory": "Answer history",
-        "noHistory": "No history yet."
+        "answerHistory": "Historial de respuestas",
+        "noHistory": "No hay historial aun"
     },
     "groundingFiles": {
-        "title": "Grounding files",
-        "description": "Files used to ground the answers."
+        "title": "Archivos",
+        "description": "Archivos para dar respuestas."
     }
 }
