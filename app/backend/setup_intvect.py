@@ -65,9 +65,9 @@ def setup_index(azure_credential, index_name, azure_search_endpoint, azure_stora
 
     data_source_connections = indexer_client.get_data_source_connections()
     if index_name in [ds.name for ds in data_source_connections]:
-        logger.info(f"Data source connection {index_name} already exists, not re-creating")
+        logger.info(f"Conexion a la fuente de datos {index_name} ya existe, no sera recreado")
     else:
-        logger.info(f"Creating data source connection: {index_name}")
+        logger.info(f"Creando conexion a la fuente de datos: {index_name}")
         indexer_client.create_data_source_connection(
             data_source_connection=SearchIndexerDataSourceConnection(
                 name=index_name, 
@@ -77,9 +77,9 @@ def setup_index(azure_credential, index_name, azure_search_endpoint, azure_stora
 
     index_names = [index.name for index in index_client.list_indexes()]
     if index_name in index_names:
-        logger.info(f"Index {index_name} already exists, not re-creating")
+        logger.info(f"Indice {index_name} ya existe, no sera recreado")
     else:
-        logger.info(f"Creating index: {index_name}")
+        logger.info(f"Creando indice: {index_name}")
         index_client.create_index(
             SearchIndex(
                 name=index_name,
@@ -128,7 +128,7 @@ def setup_index(azure_credential, index_name, azure_search_endpoint, azure_stora
 
     skillsets = indexer_client.get_skillsets()
     if index_name in [skillset.name for skillset in skillsets]:
-        logger.info(f"Skillset {index_name} already exists, not re-creating")
+        logger.info(f"Skillset {index_name} ya existe, no sera recreado")
     else:
         logger.info(f"Creating skillset: {index_name}")
         indexer_client.create_skillset(
@@ -172,7 +172,7 @@ def setup_index(azure_credential, index_name, azure_search_endpoint, azure_stora
 
     indexers = indexer_client.get_indexers()
     if index_name in [indexer.name for indexer in indexers]:
-        logger.info(f"Indexer {index_name} already exists, not re-creating")
+        logger.info(f"El index {index_name} ya existe, no sera recreado")
     else:
         indexer_client.create_indexer(
             indexer=SearchIndexer(
@@ -202,17 +202,18 @@ def upload_documents(azure_credential, indexer_name, azure_search_endpoint, azur
             filename = os.path.basename(file.path)
             # Check if blob already exists
             if filename in existing_blobs:
-                logger.info("Blob already exists, skipping file: %s", filename)
+                logger.info("Blob ya existe, saltando archivo: %s", filename)
             else:
-                logger.info("Uploading blob for file: %s", filename)
+                logger.info("Actualizando el blob para el documento: %s", filename)
                 blob_client = container_client.upload_blob(filename, opened_file, overwrite=True)
 
     # Start the indexer
     try:
         indexer_client.run_indexer(indexer_name)
-        logger.info("Indexer started. Any unindexed blobs should be indexed in a few minutes, check the Azure Portal for status.")
+        logger.info("El indexador ha comenzado. Cualquier blob no indexado debería indexarse en unos minutos, verifica el estado en el Portal de Azure.")
     except ResourceExistsError:
-        logger.info("Indexer already running, not starting again")
+        logger.info("El indexador ya está en ejecución, no se iniciará nuevamente")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING, format="%(message)s", datefmt="[%X]", handlers=[RichHandler(rich_tracebacks=True)])
@@ -223,12 +224,13 @@ if __name__ == "__main__":
 
     load_azd_env()
 
-    logger.info("Checking if we need to set up Azure AI Search index...")
+    logger.info("Revisando si necesitamos establecer un index de Azure AI Search...")
     if os.environ.get("AZURE_SEARCH_REUSE_EXISTING") == "true":
-        logger.info("Since an existing Azure AI Search index is being used, no changes will be made to the index.")
+        logger.info("Debido a que un index de Azure AI Search index esta en uso, no habra cambios al index.")
+    
         exit()
     else:
-        logger.info("Setting up Azure AI Search index and integrated vectorization...")
+        logger.info("Configurando Azure AI Search index y la vectorizacion integrada...")
 
     # Used to name index, indexer, data source and skillset
     AZURE_SEARCH_INDEX = os.environ["AZURE_SEARCH_INDEX"]

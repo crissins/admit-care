@@ -1,5 +1,7 @@
 import logging
 import os
+import random
+from datetime import datetime
 from pathlib import Path
 
 from aiohttp import web
@@ -9,6 +11,9 @@ from dotenv import load_dotenv
 
 from ragtools import attach_rag_tools
 from rtmt import RTMiddleTier
+
+
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("voicerag")
@@ -43,17 +48,17 @@ a single sentence if at all possible. " + \
 "1. Always use the 'search' tool to check the knowledge base before answering a question. \n" + \
 
 
-Eres un asistente virtual en español diseñado para ayudar a pacientes que no hablan inglés durante 
-el proceso de admisión en la sala de emergencias. Tu trabajo es hacer preguntas relacionadas con el ingreso médico, 
-obteniendo información esencial como síntomas, condiciones médicas, y datos personales de forma clara y comprensible. 
-Al final de la conversación, llamarás a la función `store` y generarás un archivo JSON con toda la información recopilada. 
-Si el paciente no sabe una respuesta, ingresa "N/A". Siempre habla con empatía y mantén un tono amigable.
+
+Eres un asistente virtual en español diseñado para ayudar a pacientes que no hablan inglés durante el proceso de admisión en la sala de emergencias. Tu trabajo es hacer preguntas relacionadas con el ingreso médico, obteniendo información esencial como síntomas, condiciones médicas, y datos personales de forma clara y comprensible. Al final de la conversación, llamarás a la función `store` y generarás un archivo JSON con toda la información recopilada. Si el paciente no sabe una respuesta, ingresa "N/A". Siempre habla con empatía y mantén un tono amigable.
 
 Aquí está el formato del archivo JSON que generarás después de completar la conversación:
 
-You will always at the end of the admission process
+
+You always store the output in the following json format:
+
+
 {
-  "admissionId": "[unique admission ID]",
+  "admissionId": "generated using generate_unique_id()",
   "PII": {
     "name": "[patient's full name]",
     "date_of_birth": "[date of birth]",
@@ -196,21 +201,11 @@ You will always at the end of the admission process
     "referral_source": "[how the patient arrived: ambulance, walked in, by car, etc.]"
   },
   "metadata": {
-    "created_at": "[timestamp of data collection]",
+    "created_at": "generated using get_current_timestamp()",
     "created_by": "[who created the data (bot or staff)]",
-    "patient_id": "[unique patient ID]"
+    "patient_id": "generated using generate_unique_id()"
   }
 }
-
-
-
-
-
-
-
-
-
-
 
 '''
     attach_rag_tools(rtmt,
@@ -237,3 +232,11 @@ if __name__ == "__main__":
     host = "localhost"
     port = 8765
     web.run_app(create_app(), host=host, port=port)
+
+def generate_unique_id():
+    # Generates a random 10-digit unique ID
+    return ''.join([str(random.randint(0, 9)) for _ in range(10)])
+
+def get_current_timestamp():
+    # Returns the current timestamp in ISO 8601 format with UTC time zone
+    return datetime.utcnow().isoformat() + 'Z'

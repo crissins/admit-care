@@ -5,6 +5,10 @@ from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import VectorizableTextQuery
+from azure.cosmos.aio import CosmosClient
+from azure.cosmos.exceptions import CosmosResourceExistsError
+
+
 
 from rtmt import RTMiddleTier, Tool, ToolResult, ToolResultDirection
 
@@ -49,6 +53,24 @@ _grounding_tool_schema = {
     }
 }
 
+_store_tool_schema = {
+    "type": "function",
+    "name": "store",
+    "description": "Store the collected admission data in CosmosDB in a JSON format.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "data": {
+                "type": "object",
+                "description": "The JSON data to store in CosmosDB."
+            }
+        },
+        "required": ["data"],
+        "additionalProperties": False
+    }
+}
+
+
 async def _search_tool(
     search_client: SearchClient, 
     semantic_configuration: str,
@@ -57,7 +79,7 @@ async def _search_tool(
     embedding_field: str,
     use_vector_query: bool,
     args: Any) -> ToolResult:
-    print(f"Searching for '{args['query']}' in the knowledge base.")
+    print(f"Buscando '{args['query']}' en la fuente de conocimiento.")
     # Hybrid + Reranking query using Azure AI Search
     vector_queries = []
     if use_vector_query:
@@ -100,6 +122,37 @@ async def _report_grounding_tool(search_client: SearchClient, identifier_field: 
         docs.append({"chunk_id": r[identifier_field], "title": r[title_field], "chunk": r[content_field]})
     return ToolResult({"sources": docs}, ToolResultDirection.TO_CLIENT)
 
+# Cristopher Changes
+async def _store_tool(args: Any) -> ToolResult:
+    data = args.get("data")
+    if not data:
+        return ToolResult("No data provided to store.", ToolResultDirection.TO_SERVER)
+    
+    # Initialize CosmosDB client
+    endpoint = os.environ["COSMOSDB_ENDPOINT"]
+    key = os.environ["COSMOSDB_KEY"]
+    database_name = os.environ["COSMOSDB_DATABASE"]
+    container_name = os.environ["COSMOSDB_CONTAINER"]
+
+    client = CosmosClient(endpoint, credential=AzureKeyCredential(key))
+    database = client.get_database_client(database_name)
+    container = database.get_container_client(container_name)
+
+    try:
+        await container.create_item(body=data)
+        logger.info("Data guardada exitosamente en CosmosDB.")
+        return ToolResult("Data guardada exitosamente .", ToolResultDirection.TO_SERVER)
+    except CosmosResourceExistsError:
+        logger.warning("Data con el mismo admissionId ya existe.")
+        return ToolResult("Data ya existe.", ToolResultDirection.TO_SERVER)
+    except Exception as e:
+        logger.error(f"Error guardando la data: {e}")
+        return ToolResult("Fallo al guardar la data.", ToolResultDirection.TO_SERVER)
+
+
+
+
+
 def attach_rag_tools(rtmt: RTMiddleTier,
     credentials: AzureKeyCredential | DefaultAzureCredential,
     search_endpoint: str, search_index: str,
@@ -116,3 +169,4 @@ def attach_rag_tools(rtmt: RTMiddleTier,
 
     rtmt.tools["search"] = Tool(schema=_search_tool_schema, target=lambda args: _search_tool(search_client, semantic_configuration, identifier_field, content_field, embedding_field, use_vector_query, args))
     rtmt.tools["report_grounding"] = Tool(schema=_grounding_tool_schema, target=lambda args: _report_grounding_tool(search_client, identifier_field, title_field, content_field, args))
+    rtmt.tools["store"] = Tool(schema=_store_tool_schema, target=lambda args: _store_tool(args))
