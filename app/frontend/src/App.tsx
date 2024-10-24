@@ -14,6 +14,7 @@ import useAudioPlayer from "@/hooks/useAudioPlayer";
 import { GroundingFile, ToolResult } from "./types";
 
 import logo from "./assets/logo.svg";
+<link href="https://fonts.googleapis.com/css2?family=Futura:wght@400;600&display=swap" rel="stylesheet"></link>;
 
 function App() {
     const [isRecording, setIsRecording] = useState(false);
@@ -64,18 +65,22 @@ function App() {
     const { t } = useTranslation();
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-100 text-gray-900">
+        <div className="flex min-h-screen flex-col bg-[#bdffff] text-black">
             <div className="p-4 sm:absolute sm:left-4 sm:top-4">
                 <img src={logo} alt="Azure logo" className="h-16 w-16" />
             </div>
             <main className="flex flex-grow flex-col items-center justify-center">
-                <h1 className="mb-8 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent md:text-7xl">
-                    {t("app.title")}
+                <h2 className="md:tex-7xl mb-0 text-8xl font-semibold text-[#65f2e3]" style={{ fontFamily: "Futura" }}>
+                    Admit
+                </h2>
+                <h1 className="mb-16 text-9xl font-semibold text-[#65f2e3] md:text-9xl" style={{ fontFamily: "Futura" }}>
+                    Care
                 </h1>
+                <h2 className="mb-8 bg-gradient-to-r from-black to-[#566a59] bg-clip-text text-4xl font-bold text-transparent md:text-7xl">{t("app.title")}</h2>
                 <div className="mb-4 flex flex-col items-center justify-center">
                     <Button
                         onClick={onToggleListening}
-                        className={`h-12 w-60 ${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-purple-500 hover:bg-purple-600"}`}
+                        className={`h-12 w-60 ${isRecording ? "bg-[#65f2e3] hover:bg-[#85fff2]" : "bg-[#22c1e4] hover:bg-[#62cce1]"}`}
                         aria-label={isRecording ? t("app.stopRecording") : t("app.startRecording")}
                     >
                         {isRecording ? (
