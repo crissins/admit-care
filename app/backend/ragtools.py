@@ -5,8 +5,8 @@ from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import VectorizableTextQuery
-from azure.cosmos.aio import CosmosClient
-from azure.cosmos.exceptions import CosmosResourceExistsError
+##from azure.cosmos.aio import CosmosClient
+##from azure.cosmos.exceptions import CosmosResourceExistsError
 
 
 

@@ -1,14 +1,14 @@
 {
     "app": {
-        "title": "Habla con tus datos",
-        "footer": "Creado con Azure AI Search + Azure OpenAI",
+        "title": "Ingreso Rápido y Seguro a Emergencias con ",
+        "footer": "Creado por Cristopher Olivares and Ariel Murillo",
         "stopRecording": "Detener grabación",
         "startRecording": "Comenzar grabación",
         "stopConversation": "Detener conversación"
     },
     "status": {
-        "notRecordingMessage": "Pregunta cualquier cosa sobre los beneficios de los empleados de Contoso",
-        "conversationInProgress": "Conversación en progreso"
+        "notRecordingMessage": "Inicia la conversacion con el asistente de inteligencia artificial",
+        "conversationInProgress": "Conversation en progreso"
     },
     "history": {
         "answerHistory": "Historial de respuestas",
