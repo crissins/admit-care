@@ -5,10 +5,6 @@ from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import VectorizableTextQuery
-##from azure.cosmos.aio import CosmosClient
-##from azure.cosmos.exceptions import CosmosResourceExistsError
-
-
 
 from rtmt import RTMiddleTier, Tool, ToolResult, ToolResultDirection
 
@@ -61,7 +57,7 @@ async def _search_tool(
     embedding_field: str,
     use_vector_query: bool,
     args: Any) -> ToolResult:
-    print(f"Buscando '{args['query']}' en la fuente de conocimiento.")
+    print(f"Searching for '{args['query']}' in the knowledge base.")
     # Hybrid + Reranking query using Azure AI Search
     vector_queries = []
     if use_vector_query:
@@ -120,4 +116,3 @@ def attach_rag_tools(rtmt: RTMiddleTier,
 
     rtmt.tools["search"] = Tool(schema=_search_tool_schema, target=lambda args: _search_tool(search_client, semantic_configuration, identifier_field, content_field, embedding_field, use_vector_query, args))
     rtmt.tools["report_grounding"] = Tool(schema=_grounding_tool_schema, target=lambda args: _report_grounding_tool(search_client, identifier_field, title_field, content_field, args))
-    rtmt.tools["store"] = Tool(schema=_store_tool_schema, target=lambda args: _store_tool(args))

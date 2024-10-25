@@ -33,19 +33,19 @@ function App() {
         },
         onReceivedExtensionMiddleTierToolResponse: message => {
             const result: ToolResult = JSON.parse(message.tool_result);
-    
+
             const files: GroundingFile[] = result.sources.map(x => {
                 const match = x.chunk_id.match(/_pages_(\d+)$/);
                 const name = match ? `${x.title}#page=${match[1]}` : x.title;
                 return { id: x.chunk_id, name: name, content: x.chunk };
             });
-    
+
             setGroundingFiles(prev => [...prev, ...files]);
         },
         onReceivedInputAudioTranscriptionCompleted: transcription => {
             console.log("Transcription completed:", transcription);
             // Handle the completed transcription here
-            if(transcription.transcript) {
+            if (transcription.transcript) {
                 console.log("Transcript:", transcription.transcript);
             }
         },
