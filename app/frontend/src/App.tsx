@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Mic, MicOff } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { GroundingFiles } from "@/components/ui/grounding-files";
@@ -21,6 +20,7 @@ function App() {
     const [selectedFile, setSelectedFile] = useState<GroundingFile | null>(null);
 
     const { startSession, addUserAudio, inputAudioBufferClear } = useRealTime({
+        enableInputAudioTranscription: true,
         onWebSocketOpen: () => console.log("WebSocket connection opened"),
         onWebSocketClose: () => console.log("WebSocket connection closed"),
         onWebSocketError: event => console.error("WebSocket error:", event),
@@ -33,12 +33,37 @@ function App() {
         },
         onReceivedExtensionMiddleTierToolResponse: message => {
             const result: ToolResult = JSON.parse(message.tool_result);
-
+    
             const files: GroundingFile[] = result.sources.map(x => {
-                return { id: x.chunk_id, name: x.title, content: x.chunk };
+                const match = x.chunk_id.match(/_pages_(\d+)$/);
+                const name = match ? `${x.title}#page=${match[1]}` : x.title;
+                return { id: x.chunk_id, name: name, content: x.chunk };
             });
-
+    
             setGroundingFiles(prev => [...prev, ...files]);
+        },
+        onReceivedInputAudioTranscriptionCompleted: transcription => {
+            console.log("Transcription completed:", transcription);
+            // Handle the completed transcription here
+            if(transcription.transcript) {
+                console.log("Transcript:", transcription.transcript);
+            }
+        },
+        onReceivedResponseDone: responseDone => {
+            console.log("Response processing done:");
+            if (responseDone.response && responseDone.response.output) {
+                responseDone.response.output.forEach(output => {
+                    if (output.content) {
+                        output.content.forEach(content => {
+                            if (content.transcript) {
+                                console.log("Transcript:", content.transcript);
+                            }
+                        });
+                    }
+                });
+            } else {
+                console.log("Transcript not found in the response.");
+            }
         }
     });
 
@@ -61,34 +86,25 @@ function App() {
         }
     };
 
-    const { t } = useTranslation();
-
     return (
-        <div className="flex min-h-screen flex-col bg-[#bdffff] text-black">
+        <div className="flex min-h-screen flex-col bg-gray-100 text-gray-900">
             <div className="p-4 sm:absolute sm:left-4 sm:top-4">
                 <img src={logo} alt="Azure logo" className="h-16 w-16" />
             </div>
             <main className="flex flex-grow flex-col items-center justify-center">
-                <h2 className="md:tex-7xl mb-0 text-8xl font-semibold text-[#65f2e3]" style={{ fontFamily: "Futura" }}>
-                    Admit
-                </h2>
-                <h1 className="mb-16 text-9xl font-semibold text-[#65f2e3] md:text-9xl" style={{ fontFamily: "Futura" }}>
-                    Care
+                <h1 className="mb-8 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent md:text-7xl">
+                    Talk to your data
                 </h1>
-                <h2 className="mb-8 bg-gradient-to-r from-black to-[#566a59] bg-clip-text text-4xl font-bold text-transparent md:text-7xl">{t("app.title")}</h2>
-                <h2 className="mb-8 bg-gradient-to-r from-black to-[#566a59] bg-clip-text text-4xl font-bold text-transparent md:text-7xl">
-                    Nuestro Asistente Médico de Voz
-                </h2>
                 <div className="mb-4 flex flex-col items-center justify-center">
                     <Button
                         onClick={onToggleListening}
-                        className={`h-12 w-60 ${isRecording ? "bg-[#65f2e3] hover:bg-[#85fff2]" : "bg-[#22c1e4] hover:bg-[#62cce1]"}`}
-                        aria-label={isRecording ? t("app.stopRecording") : t("app.startRecording")}
+                        className={`h-12 w-60 ${isRecording ? "bg-red-500 hover:bg-red-600" : "bg-purple-500 hover:bg-purple-600"}`}
+                        aria-label={isRecording ? "Stop recording" : "Start recording"}
                     >
                         {isRecording ? (
                             <>
                                 <MicOff className="mr-2 h-4 w-4" />
-                                {t("app.stopConversation")}
+                                Stop conversation
                             </>
                         ) : (
                             <>
@@ -102,7 +118,7 @@ function App() {
             </main>
 
             <footer className="py-4 text-center">
-                <p>{t("app.footer")}</p>
+                <p>Built with Azure AI Search + Azure OpenAI</p>
             </footer>
 
             <GroundingFileView groundingFile={selectedFile} onClosed={() => setSelectedFile(null)} />

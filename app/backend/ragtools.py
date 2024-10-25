@@ -53,24 +53,6 @@ _grounding_tool_schema = {
     }
 }
 
-_store_tool_schema = {
-    "type": "function",
-    "name": "store",
-    "description": "Store the collected admission data in CosmosDB in a JSON format.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "data": {
-                "type": "object",
-                "description": "The JSON data to store in CosmosDB."
-            }
-        },
-        "required": ["data"],
-        "additionalProperties": False
-    }
-}
-
-
 async def _search_tool(
     search_client: SearchClient, 
     semantic_configuration: str,
@@ -121,37 +103,6 @@ async def _report_grounding_tool(search_client: SearchClient, identifier_field: 
     async for r in search_results:
         docs.append({"chunk_id": r[identifier_field], "title": r[title_field], "chunk": r[content_field]})
     return ToolResult({"sources": docs}, ToolResultDirection.TO_CLIENT)
-
-# Cristopher Changes
-async def _store_tool(args: Any) -> ToolResult:
-    data = args.get("data")
-    if not data:
-        return ToolResult("No data provided to store.", ToolResultDirection.TO_SERVER)
-    
-    # Initialize CosmosDB client
-    endpoint = os.environ["COSMOSDB_ENDPOINT"]
-    key = os.environ["COSMOSDB_KEY"]
-    database_name = os.environ["COSMOSDB_DATABASE"]
-    container_name = os.environ["COSMOSDB_CONTAINER"]
-
-    client = CosmosClient(endpoint, credential=AzureKeyCredential(key))
-    database = client.get_database_client(database_name)
-    container = database.get_container_client(container_name)
-
-    try:
-        await container.create_item(body=data)
-        logger.info("Data guardada exitosamente en CosmosDB.")
-        return ToolResult("Data guardada exitosamente .", ToolResultDirection.TO_SERVER)
-    except CosmosResourceExistsError:
-        logger.warning("Data con el mismo admissionId ya existe.")
-        return ToolResult("Data ya existe.", ToolResultDirection.TO_SERVER)
-    except Exception as e:
-        logger.error(f"Error guardando la data: {e}")
-        return ToolResult("Fallo al guardar la data.", ToolResultDirection.TO_SERVER)
-
-
-
-
 
 def attach_rag_tools(rtmt: RTMiddleTier,
     credentials: AzureKeyCredential | DefaultAzureCredential,
